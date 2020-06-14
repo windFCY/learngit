@@ -1,0 +1,22 @@
+Intel 平台，如何配置PCIE
+1. 通过电路图了解 device port的Clock map(port-clock map),并配置对应的clock
+
+   Note：在没有指定clock的情况下，default clock assignment will be FREE_RUNNING
+         这样相对是安全的但同时也比较耗电。如果没有给定 port-clock map相关信息，为了PCIE DEVICE能工作，就会持续使用FREE_RUNNING，
+		 这是很耗电的，所以请提供为board提供port-clock map
+
+
+2. 通过电路图了解 PCIE device，对应到PCH的 flexible I/O map中的哪个PCIE port
+    
+	Note：PCH I/O Map中的PCIE port一般是从1开始的，但是code中是从0开始算的。遇到LAN可能有LAN专属设定
+	Clock[ 0].PcieClock.ClockUsage = PCIE_PEG;          //PCIE Gen4 0-3，从CPU出来的PCIE 
+	Clock[ 1].PcieClock.ClockUsage = PCIE_PCH;          //PCIE1，从PCH出来的PCIE
+	
+	
+3. 配置ME XML
+   a. 对"PCIe Port Configuration"下的PCIE Controller进行配置，选择对应4x1,,1x2, 2x1,...
+   如果是需要多条PCIE Lane的同时组合控制一个device，请根据该起始PCIE Lane(PCIE port，一般不会超过4 Lanes的)配置
+   
+   b. 首先对“SATA / PCIe Combo Port Configuration”下的SataPCIeComboPort进行配置，如果是做PCIE用就配置成PCIE，SATA就配置成SATA
+      接着对SataPcieCombo ModeSel配置，PCIE 选择PCIe CLKREQ#，SATA选择DEVSLP#
+   
